@@ -199,6 +199,78 @@ maxmin</code></pre>
 <h2>Imputing missing values</h2>
 <div id="now-here-we-do-the-imputing-the-missing-values-in-the-dataset" class="section level5">
 <h5>Now here we do the Imputing the Missing values in the dataset</h5>
+<pre class="r"><code>## First we will Split the data frame by the dates
+bydate &lt;- activitydf$date
+
+listactivity &lt;- split (activitydf , bydate)
+
+## Now add the mean value per each interval daily into this temporary data set
+## As we would use the average interval value to impute the NA values 
+listactivity &lt;- lapply( listactivity, transform, intmean = meandaily$steps)
+
+##now unsplit the data set 
+activitydf1 &lt;- unsplit (listactivity, bydate)
+
+## Replace the NA values with the average value per interval
+activitydf1 &lt;- mutate(activitydf1, steps = ifelse(is.na(steps), intmean,steps))
+
+## now we get the clean data with all the NA values filled 
+## and cleaned with removing the temp  variables like 'intmean'
+activitydf1 &lt;- select (activitydf1 , -intmean)
+
+##let us check the values of modified data frame
+names (activitydf1)</code></pre>
+<pre><code>## [1] &quot;steps&quot;    &quot;date&quot;     &quot;interval&quot;</code></pre>
+<pre class="r"><code>dim(activitydf1)</code></pre>
+<pre><code>## [1] 17568     3</code></pre>
+<pre class="r"><code>head (activitydf1,3)</code></pre>
+<pre><code>##       steps       date interval
+## 1 1.7169811 2012-10-01        0
+## 2 0.3396226 2012-10-01        5
+## 3 0.1320755 2012-10-01       10</code></pre>
+<pre class="r"><code>tail (activitydf1,3)</code></pre>
+<pre><code>##           steps       date interval
+## 17566 0.6415094 2012-11-30     2345
+## 17567 0.2264151 2012-11-30     2350
+## 17568 1.0754717 2012-11-30     2355</code></pre>
+<pre class="r"><code>summary (activitydf1$steps)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    0.00    0.00    0.00   37.38   27.00  806.00</code></pre>
+<pre class="r"><code>## No NA values in the steps
+
+## Now calculate the total steps per day 
+totalperday &lt;- aggregate (steps ~ date, data = activitydf1, sum)
+dim (totalperday)</code></pre>
+<pre><code>## [1] 61  2</code></pre>
+<pre class="r"><code>head(totalperday,3)</code></pre>
+<pre><code>##         date    steps
+## 1 2012-10-01 10766.19
+## 2 2012-10-02   126.00
+## 3 2012-10-03 11352.00</code></pre>
+<pre class="r"><code>tail (totalperday,3)</code></pre>
+<pre><code>##          date    steps
+## 59 2012-11-28 10183.00
+## 60 2012-11-29  7047.00
+## 61 2012-11-30 10766.19</code></pre>
+<pre class="r"><code>##now the Mean and Median values
+## mean value is 
+newmean &lt;- mean (totalperday$steps)
+newmean </code></pre>
+<pre><code>## [1] 10766.19</code></pre>
+<pre class="r"><code>##median value is 
+newmed &lt;- median (totalperday$steps)
+newmed</code></pre>
+<pre><code>## [1] 10766.19</code></pre>
+<pre class="r"><code>## Note that the mean and median are same as there are no missing values
+## Also note that the mean is not that much different from the old value</code></pre>
+<div id="note" class="section level6">
+<h6>Note:</h6>
+<p>The old mean value is 1.076618910^{4} and the new value is 1.076618910^{4}. The values are same</p>
+<p>The old Median value is 10765 and the new value is 1.076618910^{4}.</p>
+<p>This indicates not much difference due to missing values as the percentage is small.</p>
+<p>Now we would show the histogram with new values and the mean value line.</p>
+<p><img src="data:image/png;base64,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" /></p>
+</div>
 </div>
 </div>
 <div id="are-there-differences-in-activity-patterns-between-weekdays-and-weekends" class="section level2">

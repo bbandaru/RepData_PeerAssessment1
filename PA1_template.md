@@ -205,7 +205,7 @@ The mean value is 1.0766189\times 10^{4} and the median value is 10765
 
 now plot the histogram with the mean value
 
-![](PA1_template_files/figure-html/unnamed-chunk-1-1.png) 
+![](PA1_template_files/figure-html/firsthistogram-1.png) 
 
 ## What is the average daily activity pattern?
 
@@ -291,12 +291,152 @@ The maximum average value is 206.1698113 and it happens at 8 Hours and 35 Minute
 
 Now create the time series plot
  
-![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
+![](PA1_template_files/figure-html/firstplot-1.png) 
 
 
 ## Imputing missing values
 
 ##### Now here we do the Imputing the Missing values in the dataset
+
+
+```r
+## First we will Split the data frame by the dates
+bydate <- activitydf$date
+
+listactivity <- split (activitydf , bydate)
+
+## Now add the mean value per each interval daily into this temporary data set
+## As we would use the average interval value to impute the NA values 
+listactivity <- lapply( listactivity, transform, intmean = meandaily$steps)
+
+##now unsplit the data set 
+activitydf1 <- unsplit (listactivity, bydate)
+
+## Replace the NA values with the average value per interval
+activitydf1 <- mutate(activitydf1, steps = ifelse(is.na(steps), intmean,steps))
+
+## now we get the clean data with all the NA values filled 
+## and cleaned with removing the temp  variables like 'intmean'
+activitydf1 <- select (activitydf1 , -intmean)
+
+##let us check the values of modified data frame
+names (activitydf1)
+```
+
+```
+## [1] "steps"    "date"     "interval"
+```
+
+```r
+dim(activitydf1)
+```
+
+```
+## [1] 17568     3
+```
+
+```r
+head (activitydf1,3)
+```
+
+```
+##       steps       date interval
+## 1 1.7169811 2012-10-01        0
+## 2 0.3396226 2012-10-01        5
+## 3 0.1320755 2012-10-01       10
+```
+
+```r
+tail (activitydf1,3)
+```
+
+```
+##           steps       date interval
+## 17566 0.6415094 2012-11-30     2345
+## 17567 0.2264151 2012-11-30     2350
+## 17568 1.0754717 2012-11-30     2355
+```
+
+```r
+summary (activitydf1$steps)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    0.00    0.00    0.00   37.38   27.00  806.00
+```
+
+```r
+## No NA values in the steps
+
+## Now calculate the total steps per day 
+totalperday <- aggregate (steps ~ date, data = activitydf1, sum)
+dim (totalperday)
+```
+
+```
+## [1] 61  2
+```
+
+```r
+head(totalperday,3)
+```
+
+```
+##         date    steps
+## 1 2012-10-01 10766.19
+## 2 2012-10-02   126.00
+## 3 2012-10-03 11352.00
+```
+
+```r
+tail (totalperday,3)
+```
+
+```
+##          date    steps
+## 59 2012-11-28 10183.00
+## 60 2012-11-29  7047.00
+## 61 2012-11-30 10766.19
+```
+
+```r
+##now the Mean and Median values
+## mean value is 
+newmean <- mean (totalperday$steps)
+newmean 
+```
+
+```
+## [1] 10766.19
+```
+
+```r
+##median value is 
+newmed <- median (totalperday$steps)
+newmed
+```
+
+```
+## [1] 10766.19
+```
+
+```r
+## Note that the mean and median are same as there are no missing values
+## Also note that the mean is not that much different from the old value
+```
+
+###### Note: 
+
+The old mean value is 1.0766189\times 10^{4} and the new value is 1.0766189\times 10^{4}. The values are same
+
+The old Median value is 10765 and the new value is 1.0766189\times 10^{4}.
+
+This indicates not much difference due to missing values as the percentage is small.
+
+Now we would show the histogram with new values and the mean value line.
+
+![](PA1_template_files/figure-html/secondhistogram-1.png) 
 
 
 ## Are there differences in activity patterns between weekdays and weekends?

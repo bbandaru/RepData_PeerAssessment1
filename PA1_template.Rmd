@@ -16,7 +16,7 @@ output:
 
 Now we load the data 
 
-```{r,loaddata, echo=TRUE,results='hide'}
+```{r loaddata, echo=TRUE,results='hide'}
 require (reshape2)
 require (ggplot2)
 require (dplyr)
@@ -29,7 +29,7 @@ activitydf <- read.csv("activity.csv")
 
 Now we do initial explrotation of the data
 
-```{r,datacheck, echo=TRUE,results='markup'}
+```{r datacheck, echo=TRUE,results='markup'}
 
 names(activitydf) 
 
@@ -59,7 +59,7 @@ mean(is.na(activitydf$steps))
 
 Now calculate the Daily activity steps 
 
-```{r, dailyactivity, echo=TRUE,results='markup'}
+```{r dailyactivity, echo=TRUE,results='markup'}
 
 ## Now we would calculate the daily activity totals with out missing value 
 
@@ -86,7 +86,7 @@ The mean value is `r mn` and the median value is `r md`
 
 now plot the histogram with the mean value
 
-```{r, echo=FALSE,fig.height=4,fig.width=5,fig.keep='last'}
+```{r firsthistogram, echo=FALSE,fig.height=4,fig.width=5}
 
 
 hist (sumbydate$steps, col = "lightblue", xlab = "Total Activity steps per day", main ="Histogram of Total Steps per Day" )
@@ -100,7 +100,7 @@ abline (v= mn, col = "red", lwd ="2")
 
 Now we want to calculate the average dauly activity in the time series of the interval
 
-```{r, dailyaverage, echo=TRUE,results='markup'}
+```{r dailyaverage, echo=TRUE,results='markup'}
 
 ## Now we would calculate the mean daily activity with the time interval 
 
@@ -134,7 +134,7 @@ The maximum average value is `r maxsteps` and it happens at `r maxhr` Hours and 
 
 Now create the time series plot
  
-```{r, echo=FALSE,fig.height=4,fig.width=5,fig.keep='last'}
+```{r firstplot, echo=FALSE,fig.height=4,fig.width=5}
 
 
 plot (meandaily, type ="l", col = "blue", xlab = "Time interval (in 5 Min) ", ylab = "Average steps per Day", main ="Time series plot of Average Steps per Day" )
@@ -147,6 +147,81 @@ plot (meandaily, type ="l", col = "blue", xlab = "Time interval (in 5 Min) ", yl
 ## Imputing missing values
 
 ##### Now here we do the Imputing the Missing values in the dataset
+
+```{r imputingdata, echo=TRUE,results='markup'}
+
+## First we will Split the data frame by the dates
+bydate <- activitydf$date
+
+listactivity <- split (activitydf , bydate)
+
+## Now add the mean value per each interval daily into this temporary data set
+## As we would use the average interval value to impute the NA values 
+listactivity <- lapply( listactivity, transform, intmean = meandaily$steps)
+
+##now unsplit the data set 
+activitydf1 <- unsplit (listactivity, bydate)
+
+## Replace the NA values with the average value per interval
+activitydf1 <- mutate(activitydf1, steps = ifelse(is.na(steps), intmean,steps))
+
+## now we get the clean data with all the NA values filled 
+## and cleaned with removing the temp  variables like 'intmean'
+activitydf1 <- select (activitydf1 , -intmean)
+
+##let us check the values of modified data frame
+names (activitydf1)
+
+dim(activitydf1)
+
+head (activitydf1,3)
+
+tail (activitydf1,3)
+
+summary (activitydf1$steps)
+
+## No NA values in the steps
+
+## Now calculate the total steps per day 
+totalperday <- aggregate (steps ~ date, data = activitydf1, sum)
+dim (totalperday)
+
+head(totalperday,3)
+
+tail (totalperday,3)
+
+##now the Mean and Median values
+## mean value is 
+newmean <- mean (totalperday$steps)
+newmean 
+
+##median value is 
+newmed <- median (totalperday$steps)
+newmed
+## Note that the mean and median are same as there are no missing values
+## Also note that the mean is not that much different from the old value
+
+```
+
+###### Note: 
+
+The old mean value is `r mn` and the new value is `r newmean`. The values are same
+
+The old Median value is `r md` and the new value is `r newmed`.
+
+This indicates not much difference due to missing values as the percentage is small.
+
+Now we would show the histogram with new values and the mean value line.
+
+```{r secondhistogram, echo=FALSE,fig.height=4,fig.width=5}
+
+
+hist (totalperday$steps, col = "lightgreen", xlab = "Total Activity steps per day", main ="New Histogram of Total Steps per Day" )
+
+abline (v= newmean, col = "red", lty ="dotted")
+
+
+```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?

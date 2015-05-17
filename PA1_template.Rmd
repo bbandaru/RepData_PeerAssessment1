@@ -134,11 +134,13 @@ The maximum average value is `r maxsteps` and it happens at `r maxhr` Hours and 
 
 Now create the time series plot
  
-```{r firstplot, echo=FALSE,fig.height=4,fig.width=5}
+```{r firstplot, echo=FALSE,fig.height=4,fig.width=8}
 
 
-plot (meandaily, type ="l", col = "blue", xlab = "Time interval (in 5 Min) ", ylab = "Average steps per Day", main ="Time series plot of Average Steps per Day" )
+p1 <- ggplot(meandaily, aes(interval, steps))
 
+g1 <- (p1 + geom_line()  + labs(title = "Average Steps per Day") + labs (x = "Time Interval") + labs(y = "Average steps per Day"))
+print (g1)
 
 
 ```
@@ -225,3 +227,120 @@ abline (v= newmean, col = "red", lty ="dotted")
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+###### Now we calculate the weekdays and weekends average actvity trends
+
+
+```{r weekdayandweekenddata, echo=TRUE,results='markup'}
+
+## First we willis determine the day is weekday or weekend based on data variable
+
+## create new revised data frame with the additional variable to set the day type
+
+activitydf2 <- mutate ( activitydf1 , day = ifelse( ((weekdays(as.Date(date)) == "Saturday")|(weekdays(as.Date(date)) ==  "Sunday")), "weekend", "weekday"))
+
+## Now segregate the data for the week days
+activitywkday <- filter(activitydf2, day == "weekday")
+
+## and for the weekend days
+activitywkend <- filter (activitydf2,day == "weekend")
+
+## now we do average the activity for the weekday and weekend 
+meanwkday <- aggregate (steps ~ interval, data = activitywkday, mean)
+meanwkend <- aggregate (steps ~ interval, data = activitywkend, mean)
+
+## Data sanity check for the weekday averages
+names (meanwkday)
+dim (meanwkday)
+
+head (meanwkday,3)
+tail (meanwkday,3)
+
+##Data sanity check for the weekend averages
+names (meanwkend)
+dim (meanwkend)
+
+head (meanwkend,3)
+tail (meanwkend,3)
+
+
+## Now get the max value of the average and the time period for weekday activity
+
+maxwkday <- filter (meanwkday, steps == max(steps))
+maxstepswkd <- maxwkday$steps
+maxintwkd <- maxwkday$interval
+## Maximum average steps on weekday
+maxstepswkd
+## Interval at which the max average steps  on weekday
+maxintwkd
+
+## this provides the real conversion to Hours and Minutes
+maxhrwkd <- round (maxintwkd/100)
+maxhrwkd
+maxminwkd <- (maxintwkd-maxhrwkd*100)
+maxminwkd
+
+## Now get the max value of the average and the time period for weekend activity
+
+maxwkend <- filter (meanwkend, steps == max(steps))
+maxstepswke <- maxwkend$steps
+maxintwke <- maxwkend$interval
+## Maximum average steps on weekday
+maxstepswke
+## Interval at which the max average steps  on weekday
+maxintwke
+
+## this provides the real conversion to Hours and Minutes
+maxhrwke <- round (maxintwke/100)
+maxhrwke
+maxminwke <- (maxintwke-maxhrwke*100)
+maxminwke
+
+
+##Now mmerge the two mean data variables into one data frame
+ 
+meanwkday <- mutate(meanwkday, day = "weekday")
+meanwkend <- mutate(meanwkend, day = "weekend")
+activitydf3 <- rbind(meanwkday, meanwkend)
+## Now make the factor for the day for weekday and weekend
+activitydf3 <- mutate (activitydf3, day = factor(day))
+
+
+##let us check the data frame
+names (activitydf3)
+
+dim(activitydf3)
+
+head (activitydf3,3)
+
+tail (activitydf3,3)
+
+
+```
+
+##### Note: 
+
+We could see that the weekday on the average the max steps activity happens 
+at `r maxhrwkd` Hr and `r maxminwkd`.
+
+Where as on the weekend on the average the max steps activity happens
+at `r maxhrwke` Hr and  `r maxminwke`. Which indicates 1 Hr late.
+
+
+##### Now we would show the plot of the average values per weekdays and weekends.
+
+```{r secondplot, echo=FALSE,fig.height=4,fig.width=8}
+
+p2 <- ggplot(activitydf3, aes(interval, steps))
+
+g2 <- (p2 + geom_line(aes(color = day)) + facet_wrap (~ day, nrow = 2, ncol =1) + labs(title = "Average Steps/Day comparison for Weekday & Weekend") + labs (x = "Time Interval") + labs(y = "Average steps perday"))
+print (g2)
+
+
+```
+
+
+##### Note: 
+
+
+##### The time series plot indicates that on average steps per week day is  relatively higher activity compared at the start of the day may be office hours and where as the average trend on the weekend is much smoother.

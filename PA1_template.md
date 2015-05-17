@@ -440,3 +440,252 @@ Now we would show the histogram with new values and the mean value line.
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+###### Now we calculate the weekdays and weekends average actvity trends
+
+
+
+```r
+## First we willis determine the day is weekday or weekend based on data variable
+
+## create new revised data frame with the additional variable to set the day type
+
+activitydf2 <- mutate ( activitydf1 , day = ifelse( ((weekdays(as.Date(date)) == "Saturday")|(weekdays(as.Date(date)) ==  "Sunday")), "weekend", "weekday"))
+
+## Now segregate the data for the week days
+activitywkday <- filter(activitydf2, day == "weekday")
+
+## and for the weekend days
+activitywkend <- filter (activitydf2,day == "weekend")
+
+## now we do average the activity for the weekday and weekend 
+meanwkday <- aggregate (steps ~ interval, data = activitywkday, mean)
+meanwkend <- aggregate (steps ~ interval, data = activitywkend, mean)
+
+## Data sanity check for the weekday averages
+names (meanwkday)
+```
+
+```
+## [1] "interval" "steps"
+```
+
+```r
+dim (meanwkday)
+```
+
+```
+## [1] 288   2
+```
+
+```r
+head (meanwkday,3)
+```
+
+```
+##   interval     steps
+## 1        0 2.2511530
+## 2        5 0.4452830
+## 3       10 0.1731656
+```
+
+```r
+tail (meanwkday,3)
+```
+
+```
+##     interval     steps
+## 286     2345 0.2633124
+## 287     2350 0.2968553
+## 288     2355 1.4100629
+```
+
+```r
+##Data sanity check for the weekend averages
+names (meanwkend)
+```
+
+```
+## [1] "interval" "steps"
+```
+
+```r
+dim (meanwkend)
+```
+
+```
+## [1] 288   2
+```
+
+```r
+head (meanwkend,3)
+```
+
+```
+##   interval      steps
+## 1        0 0.21462264
+## 2        5 0.04245283
+## 3       10 0.01650943
+```
+
+```r
+tail (meanwkend,3)
+```
+
+```
+##     interval      steps
+## 286     2345 1.70518868
+## 287     2350 0.02830189
+## 288     2355 0.13443396
+```
+
+```r
+## Now get the max value of the average and the time period for weekday activity
+
+maxwkday <- filter (meanwkday, steps == max(steps))
+maxstepswkd <- maxwkday$steps
+maxintwkd <- maxwkday$interval
+## Maximum average steps on weekday
+maxstepswkd
+```
+
+```
+## [1] 230.3782
+```
+
+```r
+## Interval at which the max average steps  on weekday
+maxintwkd
+```
+
+```
+## [1] 835
+```
+
+```r
+## this provides the real conversion to Hours and Minutes
+maxhrwkd <- round (maxintwkd/100)
+maxhrwkd
+```
+
+```
+## [1] 8
+```
+
+```r
+maxminwkd <- (maxintwkd-maxhrwkd*100)
+maxminwkd
+```
+
+```
+## [1] 35
+```
+
+```r
+## Now get the max value of the average and the time period for weekend activity
+
+maxwkend <- filter (meanwkend, steps == max(steps))
+maxstepswke <- maxwkend$steps
+maxintwke <- maxwkend$interval
+## Maximum average steps on weekday
+maxstepswke
+```
+
+```
+## [1] 166.6392
+```
+
+```r
+## Interval at which the max average steps  on weekday
+maxintwke
+```
+
+```
+## [1] 915
+```
+
+```r
+## this provides the real conversion to Hours and Minutes
+maxhrwke <- round (maxintwke/100)
+maxhrwke
+```
+
+```
+## [1] 9
+```
+
+```r
+maxminwke <- (maxintwke-maxhrwke*100)
+maxminwke
+```
+
+```
+## [1] 15
+```
+
+```r
+##Now mmerge the two mean data variables into one data frame
+ 
+meanwkday <- mutate(meanwkday, day = "weekday")
+meanwkend <- mutate(meanwkend, day = "weekend")
+activitydf3 <- rbind(meanwkday, meanwkend)
+## Now make the factor for the day for weekday and weekend
+activitydf3 <- mutate (activitydf3, day = factor(day))
+
+
+##let us check the data frame
+names (activitydf3)
+```
+
+```
+## [1] "interval" "steps"    "day"
+```
+
+```r
+dim(activitydf3)
+```
+
+```
+## [1] 576   3
+```
+
+```r
+head (activitydf3,3)
+```
+
+```
+##   interval     steps     day
+## 1        0 2.2511530 weekday
+## 2        5 0.4452830 weekday
+## 3       10 0.1731656 weekday
+```
+
+```r
+tail (activitydf3,3)
+```
+
+```
+##     interval      steps     day
+## 574     2345 1.70518868 weekend
+## 575     2350 0.02830189 weekend
+## 576     2355 0.13443396 weekend
+```
+
+##### Note: 
+
+We could see that the weekday on the average the max steps activity happens 
+at 8 Hr and 35.
+
+Where as on the weekend on the average the max steps activity happens
+at 9 Hr and  15. Which indicates 1 Hr late.
+
+
+##### Now we would show the plot of the average values per weekdays and weekends.
+
+![](PA1_template_files/figure-html/secondplot-1.png) 
+
+
+##### Note: 
+
+
+##### The time series plot indicates that on average steps per week day is  relatively higher activity compared at the start of the day may be office hours and where as the average trend on the weekend is much smoother.

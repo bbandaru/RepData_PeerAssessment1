@@ -4,22 +4,149 @@ output:
   html_document:
     keep_md: true
 ---
+ This is Peer Assessment -1 Work for 
+ Reproduciable Research course on Coursera
+ 
+ Created by: Bhaksar Bandaru
+
+ Date: 17th May 2015
 
 
 ## Loading and preprocessing the data
 
+Now we load the data 
 
+```{r,loaddata, echo=TRUE,results='hide'}
+require (reshape2)
+require (ggplot2)
+require (dplyr)
+
+unzip("activity.zip", exdir = ".",  overwrite=TRUE)
+activitydf <- read.csv("activity.csv")
+
+```
+ 
+
+Now we do initial explrotation of the data
+
+```{r,datacheck, echo=TRUE,results='markup'}
+
+names(activitydf) 
+
+dim (activitydf)
+
+head(activitydf,3)
+
+tail (activitydf,3)
+
+## now check the levels of the date
+
+unique(activitydf$date)
+
+
+##check for any missing values
+summary(activitydf$steps)
+
+## now the percentage of the missing values are 
+mean(is.na(activitydf$steps))
+
+## The percentage of misssing values is statistically small 
+
+```
+##### The percentage of misssing values is statistically small 13%
 
 ## What is mean total number of steps taken per day?
 
+Now calculate the Daily activity steps 
 
+```{r, dailyactivity, echo=TRUE,results='markup'}
+
+## Now we would calculate the daily activity totals with out missing value 
+
+sumbydate <- aggregate(steps ~ date, data= activitydf, sum)
+
+dim (sumbydate)
+
+head(sumbydate,3)
+
+tail (sumbydate,3)
+
+##now the Mean and Median values
+## mean value is 
+mn <- mean (sumbydate$steps)
+mn 
+
+##median value is 
+md <- median (sumbydate$steps)
+md
+
+
+```
+The mean value is `r mn` and the median value is `r md` 
+
+now plot the histogram with the mean value
+
+```{r, echo=FALSE,fig.height=4,fig.width=5,fig.keep='last'}
+
+
+hist (sumbydate$steps, col = "lightblue", xlab = "Total Activity steps per day", main ="Histogram of Total Steps per Day" )
+
+abline (v= mn, col = "red", lwd ="2")
+
+
+```
 
 ## What is the average daily activity pattern?
 
+Now we want to calculate the average dauly activity in the time series of the interval
+
+```{r, dailyaverage, echo=TRUE,results='markup'}
+
+## Now we would calculate the mean daily activity with the time interval 
+
+meandaily <- aggregate(steps ~ interval, data= activitydf, mean)
+
+dim (meandaily)
+
+head(meandaily,3)
+
+tail (meandaily,3)
+
+## Now get the max value of the average and the time period
+
+maxvalue <- filter (meandaily, steps == max(steps))
+maxsteps <- maxvalue$steps
+maxint <- maxvalue$interval
+## Maximum average steps
+maxsteps
+## Interval at which the max average steps daily
+maxint
+
+## this provides the real conversion to Hours and Minutes
+maxhr <- round (maxint/100)
+maxhr
+maxmin <- (maxint-maxhr*100)
+maxmin
+
+
+```
+The maximum average value is `r maxsteps` and it happens at `r maxhr` Hours and `r maxmin` Minutes
+
+Now create the time series plot
+ 
+```{r, echo=FALSE,fig.height=4,fig.width=5,fig.keep='last'}
+
+
+plot (meandaily, type ="l", col = "blue", xlab = "Time interval (in 5 Min) ", ylab = "Average steps per Day", main ="Time series plot of Average Steps per Day" )
+
+
+
+```
 
 
 ## Imputing missing values
 
+##### Now here we do the Imputing the Missing values in the dataset
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
